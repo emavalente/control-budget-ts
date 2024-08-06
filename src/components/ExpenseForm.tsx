@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import useBudget from "../hooks/useBudget";
 import DatePicker from "react-date-picker";
 import { categories } from "../data/categories";
@@ -15,10 +15,24 @@ const ExpenseForm = () => {
     date: new Date(),
   });
 
+  const [previousAmount, setPreviousAmount] = useState(0);
+
   const [error, setError] = useState("");
 
-  const { dispatch } = useBudget();
+  const { dispatch, state, remainingBudget } = useBudget();
 
+  useEffect(() => {
+    // Capturar el Gasto a editar y congelar su monto.
+    if (state.editingId) {
+      const editingExpense = state.expenses.filter(
+        (currentExpense) => currentExpense.id === state.editingId
+      )[0];
+      setExpense(editingExpense);
+      setPreviousAmount(editingExpense.amount);
+    }
+  }, [state.editingId]);
+
+  // Cargar el estado general al modificar el form.
   const handleChange = (
     e:
       | React.ChangeEvent<HTMLInputElement>
@@ -31,6 +45,7 @@ const ExpenseForm = () => {
     }
   };
 
+  // Cargar el estado de la fecha al modificar el form.
   const handleChangeDate = (value: Value) => {
     setExpense({ ...expense, date: value });
   };
@@ -42,10 +57,23 @@ const ExpenseForm = () => {
       setError("Todos los campos son obligatorios");
       return;
     }
-    // Agregar un nuevo gasto.
-    dispatch({ type: "add-expense", payload: { expense } });
 
-    // Riniciar el state.
+    // Validar que el gasto no supere el disponible.
+    if (expense.amount - previousAmount > remainingBudget) {
+      setError("Tu gasto supera el monto disponible!");
+      return;
+    }
+    // Agregar o Actualizar un gasto.
+    if (state.editingId) {
+      dispatch({
+        type: "update-expense",
+        payload: { expense: { ...expense, id: state.editingId } },
+      });
+    } else {
+      dispatch({ type: "add-expense", payload: { expense } });
+    }
+
+    // Reiniciar el estado.
     setExpense({
       amount: 0,
       expenseName: "",
@@ -57,7 +85,7 @@ const ExpenseForm = () => {
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
       <legend className="uppercase text-center text-2xl font-black border-b-4 border-blue-500 py-2">
-        Nuevo Gasto
+        {state.editingId ? "Editar Gasto" : "Nuevo Gasto"}
       </legend>
       {error && <ErrorMessage>{error}</ErrorMessage>}
       <div className="flex flex-col gap-2">
@@ -120,7 +148,7 @@ const ExpenseForm = () => {
 
       <input
         type="submit"
-        value="Registrar Gasto"
+        value={state.editingId ? "Guardar Cambios" : "Registrar Gasto"}
         className="w-full p-2 uppercase text-white font-bold rounded-lg bg-blue-600 cursor-pointer hover:bg-blue-700"
       />
     </form>
