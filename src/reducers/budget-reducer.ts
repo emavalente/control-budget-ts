@@ -1,4 +1,4 @@
-import { DraftExpense, Expense } from "../types/index";
+import { Category, DraftExpense, Expense } from "../types/index";
 import { v4 as uuidv4 } from "uuid";
 
 // Types para los actions.
@@ -9,7 +9,9 @@ export type BudgetActions =
   | { type: "add-expense"; payload: { expense: DraftExpense } }
   | { type: "remove-expense"; payload: { id: Expense["id"] } }
   | { type: "get-expense-by-id"; payload: { id: Expense["id"] } }
-  | { type: "update-expense"; payload: { expense: Expense } };
+  | { type: "update-expense"; payload: { expense: Expense } }
+  | { type: "reset-app" }
+  | { type: "add-category-filter"; payload: { id: Category["id"] } };
 
 // Type para el estado en general.
 export type BudgetState = {
@@ -17,6 +19,7 @@ export type BudgetState = {
   modal: boolean;
   expenses: Expense[];
   editingId: Expense["id"];
+  currentCategory: Category["id"];
 };
 
 // Recuperar datos iniciales de LocalStorage.
@@ -36,6 +39,7 @@ export const initialState: BudgetState = {
   modal: false,
   expenses: initialExpenses(),
   editingId: "",
+  currentCategory: "",
 };
 
 // Crea un Gasto con id asignado.
@@ -89,6 +93,16 @@ export const budgetReducer = (
         editingId: "",
         expenses: updateExpenses,
       };
+    }
+    case "reset-app": {
+      return {
+        ...state,
+        budget: 0,
+        expenses: [],
+      };
+    }
+    case "add-category-filter": {
+      return { ...state, currentCategory: action.payload.id };
     }
     default:
       return state;

@@ -14,7 +14,7 @@ type BudgetContextProps = {
   remainingBudget: number;
 };
 
-// Declaramos un type para las props que recibe el componente proveedor.
+// Declaramos un type para los children que recibe el componente proveedor.
 type BudgetProviderProps = {
   children: ReactNode;
 };

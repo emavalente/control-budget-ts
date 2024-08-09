@@ -63,6 +63,7 @@ const ExpenseForm = () => {
       setError("Tu gasto supera el monto disponible!");
       return;
     }
+
     // Agregar o Actualizar un gasto.
     if (state.editingId) {
       dispatch({
@@ -80,6 +81,8 @@ const ExpenseForm = () => {
       category: "",
       date: new Date(),
     });
+
+    setPreviousAmount(0);
   };
 
   return (
